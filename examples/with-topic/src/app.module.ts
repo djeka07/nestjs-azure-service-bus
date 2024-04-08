@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AzureServiceBusModule } from '../../../src/modules/azure-service-bus.module';
 
 @Module({
   imports: [
