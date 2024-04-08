@@ -8,16 +8,16 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist/**/*",
+    "./dist/**/*",
     "LICENSE",
-    "*.md"
+    "./*.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "homepage": "https://github.com/djeka07/nestjs-azure-service-bus#readme",
   "bugs": {
     "url": "https://github.com/djeka07/nestjs-azure-service-bus/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "prebuild": "rimraf dist",
@@ -56,6 +56,7 @@
     "ts-jest": "29.1.2",
     "typescript": "5.4.4"
   },
+
   "jest": {
     "moduleFileExtensions": [
       "js",
