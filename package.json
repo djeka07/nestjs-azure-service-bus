@@ -1,6 +1,6 @@
 {
   "name": "@djeka07/nestjs-azure-service-bus",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "NestJS Azure service bus based on @azure/service-bus package",
   "author": "André Ekbom",
   "private": false,

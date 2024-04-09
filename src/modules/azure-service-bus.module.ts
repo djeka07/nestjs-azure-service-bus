@@ -28,13 +28,17 @@ export class AzureServiceBusModule implements OnModuleInit {
     this.eventSubscribe = EventSubscriberService;
   }
   async onModuleInit() {
-    const exampleMethodsMeta =
-      await this.discover.controllerMethodsWithMetaAtKey<{
+    const [providerMethods, controllerMethods] = await Promise.all([
+      this.discover.providerMethodsWithMetaAtKey<{
         receiver: Receiver;
-      }>(AZURE_SERVICE_BUS_SUBSCRIBER);
-
-    if (exampleMethodsMeta?.length > 0) {
-      exampleMethodsMeta.forEach((meta) => {
+      }>(AZURE_SERVICE_BUS_SUBSCRIBER),
+      this.discover.controllerMethodsWithMetaAtKey<{
+        receiver: Receiver;
+      }>(AZURE_SERVICE_BUS_SUBSCRIBER),
+    ]);
+    const methods = [...providerMethods, ...controllerMethods];
+    if (methods?.length > 0) {
+      methods.forEach((meta) => {
         const handler = meta.discoveredMethod.handler.bind(
           meta.discoveredMethod.parentClass.instance,
         );
