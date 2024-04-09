@@ -14,22 +14,22 @@ import {
   AZURE_SERVICE_BUS_EVENT_SUBSCRIBER,
   EventSubscriberService,
 } from '../constants';
-import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-key';
+import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-receiver-key';
 import {
   AzureServiceBusEmit,
   AzureServiceBusMessage,
-  AzureServiceBusOptions,
+  AzureServiceBusOptionsWithName,
 } from '../interfaces';
 
 export class AzureServiceBusClient {
   private serviceBusClient: ServiceBusClient;
-  public sender?: Record<string, ServiceBusSender>;
-  public receiver?: Record<string, ServiceBusReceiver>;
-  private clientConfig: ServiceBusConnectionStringProperties;
+  private sender?: Record<string, ServiceBusSender>;
+  private receiver?: Record<string, ServiceBusReceiver>;
+  public clientConfig: ServiceBusConnectionStringProperties;
 
   constructor(
     @Inject(AZURE_SERVICE_BUS_CONFIGURATION)
-    private readonly config: AzureServiceBusOptions,
+    private readonly config: AzureServiceBusOptionsWithName,
     @Inject(AZURE_SERVICE_BUS_EVENT_SUBSCRIBER)
     private readonly eventSubscriberService: typeof EventSubscriberService,
   ) {
@@ -48,13 +48,12 @@ export class AzureServiceBusClient {
             };
           }, {})
         : undefined;
-    console.log(Object.keys(config.receivers));
     this.receiver =
       !!config.receivers && config.receivers?.length > 0
         ? config.receivers.reduce?.((acc, curr) => {
             return {
               ...acc,
-              [buildAzureServiceBusKey(curr.name, curr.subscription)]:
+              [buildAzureServiceBusKey({ ...curr, provider: config.name })]:
                 this.serviceBusClient.createReceiver(
                   curr.name,
                   curr.subscription,
@@ -71,7 +70,6 @@ export class AzureServiceBusClient {
 
   async emit<T>(data: AzureServiceBusEmit<T>): Promise<void> {
     const { payload, updateTime, options, name } = data;
-    console.log('payload', payload);
     const sender = this.sender?.[name];
     if (!!sender) {
       if (updateTime && this.checkScheduleDate(updateTime)) {
@@ -113,11 +111,9 @@ export class AzureServiceBusClient {
   private createMessageHandlers(key: string): MessageHandlers {
     return {
       processMessage: async (receivedMessage: ServiceBusReceivedMessage) => {
-        console.log('message reviee');
         this.handleMessage(receivedMessage, key);
       },
       processError: (args: ProcessErrorArgs): Promise<void> => {
-        console.log('error', args);
         return new Promise<void>(() => {
           throw new Error(`Error processing message: ${args.error}`);
         });
@@ -139,7 +135,6 @@ export class AzureServiceBusClient {
         lockToken,
         timeToLive,
       } = receivedMessage;
-      console.log('r', receivedMessage);
       this.eventSubscriberService.invoke(key, {
         body,
         replyTo,

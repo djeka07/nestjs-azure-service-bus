@@ -51,19 +51,20 @@ export class AzureServiceBusModule {
     return [
       {
         provide: options.name || AzureServiceBusClient,
-        useFactory: this.createFactoryWrapper(options.useFactory),
+        useFactory: this.createFactoryWrapper(options.name, options.useFactory),
         inject: [...(options.inject || [])],
       },
     ];
   }
 
   private static createFactoryWrapper(
+    name: AzureServiceBusProviderAsyncOptions['name'],
     useFactory: AzureServiceBusProviderAsyncOptions['useFactory'],
   ) {
     return async (...args: any[]) => {
       const clientOptions = await useFactory(...args);
       const clientProxyRef = new AzureServiceBusClient(
-        clientOptions,
+        { ...clientOptions, name },
         EventSubscriberService,
       );
       return this.assignOnAppShutdownHook(clientProxyRef);

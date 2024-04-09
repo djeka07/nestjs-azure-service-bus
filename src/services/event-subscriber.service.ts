@@ -1,4 +1,4 @@
-import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-key';
+import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-receiver-key';
 import { EventSubscriberServiceInterface, Receiver } from '../interfaces';
 
 export class EventSubscriberService implements EventSubscriberServiceInterface {
@@ -6,13 +6,16 @@ export class EventSubscriberService implements EventSubscriberServiceInterface {
 
   invoke<T>(key: string, payload: T): void {
     const handler = this.subscriptions.get(key);
-    handler(payload);
+    if (!!handler) {
+      handler(payload);
+    }
   }
 
   subscribe(receiver: Receiver, handler: (payload?: unknown) => void): void {
-    this.subscriptions.set(
-      buildAzureServiceBusKey(receiver.name, receiver.subscription),
-      handler,
-    );
+    const key = buildAzureServiceBusKey(receiver);
+    if (this.subscriptions.get(key)) {
+      throw new Error(`Key ${key} has already been registered`);
+    }
+    this.subscriptions.set(key, handler);
   }
 }

@@ -10,8 +10,8 @@ export class AppService {
     return 'Hello World!';
   }
 
-  @Subscribe({ name: 'test2' })
-  onMessage(data: AzureServiceBusMessage<{ test: string }>) {
-    console.log(data);
+  @Subscribe({ name: 'test', subscription: 'test' })
+  sub(data: AzureServiceBusMessage<{ test: string }>): void {
+    console.log('data', data);
   }
 }

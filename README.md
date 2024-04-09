@@ -9,9 +9,8 @@
 <h3 align="center">NestJS Azure service bus</h3>
 
 <div align="center">
-<a href="https://www.npmjs.com/package/@djeka07/nestjs-azure-service-bus"><img src="https://img.shields.io/npm/v/@djeka07/nestjs-loki-logger.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/package/@djeka07/nestjs-loki-logger"><img src="https://img.shields.io/npm/l/@djeka07/nestjs-loki-logger.svg" alt="Package License" /></a>
-
+<a href="https://www.npmjs.com/package/@djeka07/nestjs-azure-service-bus"><img src="https://img.shields.io/npm/v/@djeka07/nestjs-azure-service-bus.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/package/@djeka07/nestjs-azure-service-bus"><img src="https://img.shields.io/npm/l/@djeka07/nestjs-azure-service-bus.svg" alt="Package License" /></a>
 
   <a href="https://nestjs.com" target="_blank">
     <img src="https://img.shields.io/badge/built%20with-NestJs-red.svg" alt="Built with NestJS">
@@ -19,7 +18,9 @@
 </div>
 
 ### Introduction
-NestJS Azure service bus based on @azure/service-bus package
+
+NestJS Azure service bus based on @azure/service-bus package. See [Examples](Examples) folder for usage,
+
 ### Installation
 
 ```bash
@@ -28,111 +29,196 @@ yarn add @djeka07/nestjs-azure-service-bus
 
 ### Usage
 
-#### Importing module
+#### Importing module with only one provider
 
 ```typescript
-import { LokiLoggerModule } from '@djeka07/nestjs-loki-logger';
+import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
+
 @Module({
   imports: [
-    LokiLoggerModule.forRoot({
-      app: 'app-name',
-      host: 'host',
-      userId: 'user id',
-      password: 'password',
-      environment: 'development' | 'production', // Optional, defaults to production
-      logDev: false, // Optional, default to false
-      minLogLevel: LogLevel.verbose, // Optional, defaults to LogLevel.verbose
-    }),
-  ],
-  providers: [],
-  exports: [],
-})
-export class AModule {}
-```
-
-#### Importing module Async
-
-```typescript
-import { LokiLoggerModule } from '@djeka07/nestjs-loki-logger';
-@Module({
-  imports: [
-    LokiLoggerModule.forAsyncRoot({
+    AzureServiceBusModule.forAsyncRoot({
       useFactory: async () => {
         return {
-          app: 'app-name',
-          host: 'host',
-          userId: 'user id',
-          password: 'password',
-          environment: 'development' | 'production', // Optional, defaults to production
-          logDev: false, // Optional, default to false
-          minLogLevel: LogLevel.verbose, // Optional, defaults to LogLevel.verbose
+          connectionString: '<your-connection-string>'
+          senders: [ // Senders to send messages. Optional if for example if only will recieve messages
+              {
+                name: '<queue/topic-name>',
+                identifier: 'The identifier of the sender' // Optional
+              }
+            ],
+          receivers: [ // Recievers to recieve messages, Optional if only will send messages
+              {
+                name: '<queue/topic-name>',
+                subscription: '<subscription-name>' // Optional, required when using topics
+              }
+            ],
         };
       },
     }),
   ],
+  controllers: [],
   providers: [],
-  exports: [],
 })
 export class AModule {}
 ```
 
-#### Use logger for nest logging
+#### Importing module with multiple providers
 
 ```typescript
-import { NestFactory } from '@nestjs/core';
-import { MainModule } from './main.module';
-import { LokiLoggerService } from '@djeka07/nestjs-loki-logger';
+import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
 
-
-async function bootstrap() {
-  const app = await NestFactory.create(MainModule, {
-    bufferLogs: true,
-  });
-  app.useLogger(app.get(LokiLoggerService));
-  await app.listen(3000, '0.0.0.0');
-}
-bootstrap();
-```
-
-#### Use request logging interceptor
-```typescript
-import { LokiLoggerModule, LokiRequestLoggingInterceptor } from '@djeka07/nestjs-loki-logger';
 @Module({
   imports: [
-    LokiLoggerModule.forAsyncRoot({
-      useFactory: async () => {
-        return {
-          app: 'app-name',
-          host: 'host',
-          userId: 'user id',
-          password: 'password',
-          environment: 'development' | 'production', // Optional, defaults to production
-          logDev: false, // Optional, default to false
-          minLogLevel: LogLevel.verbose, // Optional, defaults to LogLevel.verbose
-        };
+    AzureServiceBusModule.forAsyncRoot([
+      {
+        useFactory: async () => {
+                return {
+                  name: '<provider name>', // When using multiple providers a name need to be set
+                  connectionString: '<your-connection-string>'
+                  senders: [ // Senders to send messages. Optional if for example if only will recieve messages
+                      {
+                        name: '<queue/topic-name>',
+                        identifier: 'The identifier of the sender' // Optional
+                      }
+                    ],
+                  receivers: [ // Recievers to recieve messages, Optional if only will send messages
+                      {
+                        name: '<queue/topic-name>',
+                        subscription: '<subscription-name>' // Optional, required when using topics
+                      }
+                    ],
+                };
+          },
       },
-    }),
+      {
+        useFactory: async () => {
+          return {
+            name: '<provider name>', // When using multiple providers a name need to be set
+            connectionString: 'connection string'
+            senders: [ // Senders to send messages. Optional if for example if only will recieve messages
+                {
+                  name: '<queue/topic-name>',
+                  identifier: 'The identifier of the sender' // Optional
+                }
+              ],
+            receivers: [ // Recievers to recieve messages, Optional if only will send messages
+                {
+                  name: '<queue/topic-name>',
+                  subscription: '<subscription-name>' // Optional, required when using topics
+                }
+              ],
+          };
+        },
+      }
+    ]),
   ],
-  providers: [{ provide: APP_INTERCEPTOR, useClass: LokiRequestLoggingInterceptor }],
-  exports: [],
+  controllers: [],
+  providers: [],
 })
 export class AModule {}
 ```
 
-#### Use the log service
+#### Emitting messages with one provider
 
 ```typescript
-import { LokiLoggerService } from '@djeka07/nestjs-loki-logger';
+import { Controller, Post } from '@nestjs/common';
+import { AppService } from './app.service';
+import { AzureServiceBusClient } from '@djeka07/nestjs-azure-service-bus';
 
-@Injectable()
-export class AService {
-  constructor(private readonly loggerService: LokiLoggerService) {
-    this.loggerService.verbose('message', [{ optionalProps: 'optionalProps' }])
+@Controller()
+export class AppController {
+  constructor(
+    public readonly azureServiceBusClient: AzureServiceBusClient,
+    public readonly appService: AppService,
+  ) {}
+
+  @Post()
+  post(): void {
+    this.azureServiceBusClient.emit({
+      payload: { body: { test: 'test' } },
+      name: '<queue/topic name>',
+    });
   }
 }
 ```
 
+#### Emitting messages with multiple providers
+
+```typescript
+import { Controller, Post } from '@nestjs/common';
+import { AppService } from './app.service';
+import { AzureServiceBusClient } from '@djeka07/nestjs-azure-service-bus';
+
+@Controller()
+export class AppController {
+  constructor(
+    @Inject('<provider name>')
+    private readonly azureServiceBusClient: AzureServiceBusClient,
+    @Inject('provider name')
+    private readonly azureServiceBusSecondService: AzureServiceBusClient,
+  ) {}
+
+  @Post()
+  post(): void {
+    this.azureServiceBusClient.emit({
+      payload: { body: { test: 'test' } },
+      name: '<queue/topic name>',
+    });
+  }
+
+  @Post('/second')
+  post(): void {
+    this.azureServiceBusSecondService.emit({
+      payload: { body: { test: 'second test' } },
+      name: '<queue/topic name>',
+    });
+  }
+}
+```
+
+#### Reveive messages
+
+```typescript
+import { Subscribe } from '@djeka07/nestjs-azure-service-bus';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class TestService {
+  @Subscribe({ name: '<queue-name>' })
+  onMessage(data) {
+    console.log('message one', data);
+  }
+
+  @Subscribe({ name: '<topic-name>', subscription: '<subscription-name>' })
+  onMessageTwo(data) {
+    console.log('message two', data);
+  }
+}
+
+```
+
+#### Reveive messages with multiple providers
+```typescript
+import { Subscribe } from '@djeka07/nestjs-azure-service-bus';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class TestService {
+  @Subscribe({ name: '<queue-name>', provider: '<provider-name>' })
+  onMessage(data) {
+    console.log('message one', data);
+  }
+
+  @Subscribe({ name: '<topic-name>', subscription: '<subscription-name>', provider: '<provider-name>' })
+  onMessageTwo(data) {
+    console.log('message two', data);
+  }
+}
+
+```
+
 ## Author
+
 **André Ekbom [Github](https://github.com/djeka07)**
 
 ## License

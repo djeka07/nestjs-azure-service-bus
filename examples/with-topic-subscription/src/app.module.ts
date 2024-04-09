@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AzureServiceBusModule } from '../../../src/modules/azure-service-bus.module';
+import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../.env' }),
+    ConfigModule.forRoot({ isGlobal: true }),
     AzureServiceBusModule.forAsyncRoot({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -14,11 +14,11 @@ import { AzureServiceBusModule } from '../../../src/modules/azure-service-bus.mo
           connectionString: configService.get(
             'AZURE_SERVICE_BUS_CONNECTION_STRING',
           ),
-          senders: [{ name: 'message_created' }],
+          senders: [{ name: 'test' }],
           receivers: [
             {
-              name: 'message_created',
-              subscription: 'notification-service',
+              name: 'test',
+              subscription: 'test',
             },
           ],
         };

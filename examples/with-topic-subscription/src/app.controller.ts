@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AzureServiceBusClient } from '../dist';
+import { AzureServiceBusClient } from '@djeka07/nestjs-azure-service-bus';
 
 @Controller()
 export class AppController {
@@ -12,8 +12,9 @@ export class AppController {
   @Get()
   getHello(): string {
     this.azureServiceBusClient.emit({
-      payload: { body: { hej: 'dansa' }, replyTo: 'eka' },
-      name: 'message_created',
+      payload: { body: { test: 'test' } },
+      name: 'test',
+      updateTime: new Date(),
     });
     return this.appService.getHello();
   }
