@@ -19,7 +19,7 @@
 
 ### Introduction
 
-NestJS Azure service bus based on @azure/service-bus package. See [Examples](Examples) folder for usage,
+NestJS Azure service bus based on @azure/service-bus package. See [Examples](./examples) folder for usage,
 
 ### Installation
 
