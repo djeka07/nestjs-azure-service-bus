@@ -1,18 +1,14 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Receiver } from '../interfaces';
-import { EventSubscriberService } from '../constants';
+import { AZURE_SERVICE_BUS_SUBSCRIBER } from '../constants';
+import { SetMetadata } from '@nestjs/common';
 
-export function Subscribe(receiver: Receiver): MethodDecorator {
-  const service = EventSubscriberService;
-  return function (
-    target: any,
-    propertyKey: string | symbol,
-    descriptor: PropertyDescriptor,
-  ) {
-    const TargetCtor = target.constructor;
-    const instance = new TargetCtor();
-    const handler = descriptor.value.bind(instance);
-    service.subscribe(receiver, handler);
-    return instance;
+export const Subscribe = (receiver: Receiver) => {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    SetMetadata(AZURE_SERVICE_BUS_SUBSCRIBER, {
+      receiver,
+      target: target.constructor.name,
+      methodName: propertyKey,
+      callback: descriptor.value,
+    })(target, propertyKey, descriptor);
   };
-}
+};

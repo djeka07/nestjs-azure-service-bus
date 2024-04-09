@@ -463,6 +463,13 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-9.0.0.tgz#1a9e4b4c96d8c7886e0110ed310a0135144a1691"
   integrity sha512-RThY/MnKrhubF6+s1JflwUjPEsnCEmYCWwqa/aRISKWNXGZ9epUwft4bUMM35SdKF9xvBrLydAM1RDHd1Z//ZQ==
 
+"@golevelup/nestjs-discovery@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@golevelup/nestjs-discovery/-/nestjs-discovery-4.0.0.tgz#3428f0b620b51e4d425bc9e41cc8f2f338472dc1"
+  integrity sha512-iyZLYip9rhVMR0C93vo860xmboRrD5g5F5iEOfpeblGvYSz8ymQrL9RAST7x/Fp3n+TAXSeOLzDIASt+rak68g==
+  dependencies:
+    lodash "^4.17.21"
+
 "@humanwhocodes/config-array@^0.12.3":
   version "0.12.3"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.12.3.tgz#a6216d90f81a30bedd1d4b5d799b47241f318072"
@@ -2630,6 +2637,11 @@ lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
+
+lodash@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 long@^5.2.0:
   version "5.2.3"

@@ -2,18 +2,47 @@ import {
   Global,
   Module,
   OnApplicationShutdown,
+  OnModuleInit,
   Provider,
 } from '@nestjs/common';
 import { AzureServiceBusClient } from '../clients/azure-service-bus.client';
-import { EventSubscriberService } from '../constants/azure-service-bus.constants';
+import {
+  AZURE_SERVICE_BUS_SUBSCRIBER,
+  EventSubscriberService,
+} from '../constants/azure-service-bus.constants';
 import {
   AzureServiceBusProviderAsyncOptions,
   BaseAzureServiceBusProviderAsyncOption,
+  Receiver,
 } from '../interfaces';
+import { DiscoveryModule, DiscoveryService } from '@golevelup/nestjs-discovery';
 
 @Global()
-@Module({})
-export class AzureServiceBusModule {
+@Module({
+  imports: [DiscoveryModule],
+  providers: [],
+})
+export class AzureServiceBusModule implements OnModuleInit {
+  eventSubscribe: typeof EventSubscriberService;
+  constructor(private readonly discover: DiscoveryService) {
+    this.eventSubscribe = EventSubscriberService;
+  }
+  async onModuleInit() {
+    const exampleMethodsMeta =
+      await this.discover.controllerMethodsWithMetaAtKey<{
+        receiver: Receiver;
+      }>(AZURE_SERVICE_BUS_SUBSCRIBER);
+
+    if (exampleMethodsMeta?.length > 0) {
+      exampleMethodsMeta.forEach((meta) => {
+        const handler = meta.discoveredMethod.handler.bind(
+          meta.discoveredMethod.parentClass.instance,
+        );
+        this.eventSubscribe.subscribe(meta.meta.receiver, handler);
+      });
+    }
+  }
+
   public static forAsyncRoot(
     options:
       | Array<AzureServiceBusProviderAsyncOptions>

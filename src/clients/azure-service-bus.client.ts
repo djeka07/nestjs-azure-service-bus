@@ -11,7 +11,7 @@ import {
 import { Inject } from '@nestjs/common';
 import {
   AZURE_SERVICE_BUS_CONFIGURATION,
-  AZURE_SERVICE_BUS_EVENT_SUBSCRIBER,
+  AZURE_SERVICE_BUS_EVENT_SUBSCRIBER_CLIENT,
   EventSubscriberService,
 } from '../constants';
 import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-receiver-key';
@@ -30,7 +30,7 @@ export class AzureServiceBusClient {
   constructor(
     @Inject(AZURE_SERVICE_BUS_CONFIGURATION)
     private readonly config: AzureServiceBusOptionsWithName,
-    @Inject(AZURE_SERVICE_BUS_EVENT_SUBSCRIBER)
+    @Inject(AZURE_SERVICE_BUS_EVENT_SUBSCRIBER_CLIENT)
     private readonly eventSubscriberService: typeof EventSubscriberService,
   ) {
     this.serviceBusClient = new ServiceBusClient(config.connectionString);

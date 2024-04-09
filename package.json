@@ -1,6 +1,6 @@
 {
   "name": "@djeka07/nestjs-azure-service-bus",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "NestJS Azure service bus based on @azure/service-bus package",
   "author": "André Ekbom",
   "private": false,
@@ -20,7 +20,8 @@
     "access": "public"
   },
   "keywords": [
-    "nestjs", "azure-service-bus"
+    "nestjs",
+    "azure-service-bus"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
@@ -40,6 +41,7 @@
   },
   "dependencies": {
     "@azure/service-bus": "7.9.4",
+    "@golevelup/nestjs-discovery": "^4.0.0",
     "@nestjs/common": "10.3.7"
   },
   "devDependencies": {
@@ -60,7 +62,6 @@
     "ts-jest": "29.1.2",
     "typescript": "5.4.4"
   },
-
   "jest": {
     "moduleFileExtensions": [
       "js",
