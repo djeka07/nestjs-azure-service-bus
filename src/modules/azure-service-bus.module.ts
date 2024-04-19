@@ -5,102 +5,109 @@ import {
   OnModuleInit,
   Provider,
 } from '@nestjs/common';
+import { MetadataScanner } from '@nestjs/core/metadata-scanner';
 import { AzureServiceBusClient } from '../clients/azure-service-bus.client';
+import { AZURE_SERVICE_BUS_SENDER } from '../constants';
+import { toUpper } from '../helpers';
 import {
-  AZURE_SERVICE_BUS_SUBSCRIBER,
-  EventSubscriberService,
-} from '../constants/azure-service-bus.constants';
-import {
-  AzureServiceBusProviderAsyncOptions,
   BaseAzureServiceBusProviderAsyncOption,
+  ExploredClass,
+  ExploredMethodWithMeta,
   Receiver,
+  Sender,
 } from '../interfaces';
-import { DiscoveryModule, DiscoveryService } from '@golevelup/nestjs-discovery';
-
+import { ExplorerService } from '../services/explorer.service';
 @Global()
 @Module({
-  imports: [DiscoveryModule],
-  providers: [],
+  imports: [],
+  providers: [ExplorerService, MetadataScanner],
 })
 export class AzureServiceBusModule implements OnModuleInit {
-  eventSubscribe: typeof EventSubscriberService;
-  constructor(private readonly discover: DiscoveryService) {
-    this.eventSubscribe = EventSubscriberService;
-  }
+  constructor(private readonly explorerService: ExplorerService) {}
   async onModuleInit() {
-    const [providerMethods, controllerMethods] = await Promise.all([
-      this.discover.providerMethodsWithMetaAtKey<{
-        receiver: Receiver;
-      }>(AZURE_SERVICE_BUS_SUBSCRIBER),
-      this.discover.controllerMethodsWithMetaAtKey<{
-        receiver: Receiver;
-      }>(AZURE_SERVICE_BUS_SUBSCRIBER),
+    const [azureServiceBusClients, subscribeMethods] = await Promise.all([
+      this.explorerService.getAzureServiceBusClientProviders(),
+      this.explorerService.getMethodsWithSubscriberKey(),
     ]);
-    const methods = [...providerMethods, ...controllerMethods];
+    this.registerSubscribeMethods(subscribeMethods, azureServiceBusClients);
+  }
+
+  private registerSubscribeMethods(
+    methods: ExploredMethodWithMeta<{
+      receiver: Receiver;
+    }>[],
+    azureServiceBusClients: ExploredClass<AzureServiceBusClient>[],
+  ) {
     if (methods?.length > 0) {
-      methods.forEach((meta) => {
-        const handler = meta.discoveredMethod.handler.bind(
-          meta.discoveredMethod.parentClass.instance,
+      methods.forEach((method) => {
+        const handler = method.discoveredMethod.handler.bind(
+          method.discoveredMethod.parentClass.instance,
         );
-        this.eventSubscribe.subscribe(meta.meta.receiver, handler);
+        const azureServiceBus = azureServiceBusClients?.find(
+          (client) =>
+            client.name === method.meta.receiver.provider ||
+            client.name === AzureServiceBusClient.name,
+        );
+        if (!azureServiceBus) {
+          throw new Error(
+            `Could not find any registered servicebus client with name ${method?.meta?.receiver?.provider || AzureServiceBusClient.name}`,
+          );
+        }
+        azureServiceBus.instance.subscribe(method.meta.receiver, handler);
       });
     }
   }
 
-  public static forAsyncRoot(
-    options:
-      | Array<AzureServiceBusProviderAsyncOptions>
-      | BaseAzureServiceBusProviderAsyncOption,
-  ) {
-    const optns = Array.isArray(options) ? options : [options];
-
-    const providers: Provider[] = optns.reduce(
-      (accProviders: Provider[], item: AzureServiceBusProviderAsyncOptions) =>
-        accProviders
-          .concat(this.createAsyncOptionsProvider(item))
-          .concat(item.extraProviders || []),
-      [],
-    );
-
-    const imports = optns.reduce(
-      (accImports: any, option: AzureServiceBusProviderAsyncOptions) =>
-        option.imports && !accImports.includes(option.imports)
-          ? accImports.concat(option.imports)
-          : accImports,
-      [],
-    );
+  public static forAsyncRoot(option: BaseAzureServiceBusProviderAsyncOption) {
+    const providers: Provider[] = this.createAsyncOptionsProvider(
+      option,
+    ).concat(option.extraProviders || []);
 
     return {
       module: AzureServiceBusModule,
-      imports: [...imports],
-      providers: [...providers],
-      exports: [...providers],
+      imports: option.imports,
+      providers,
+      exports: providers,
     };
   }
 
   private static createAsyncOptionsProvider(
-    options: AzureServiceBusProviderAsyncOptions,
+    options: BaseAzureServiceBusProviderAsyncOption,
   ): Provider[] {
     return [
       {
-        provide: options.name || AzureServiceBusClient,
-        useFactory: this.createFactoryWrapper(options.name, options.useFactory),
+        provide: AzureServiceBusClient,
+        useFactory: this.createFactoryWrapper(options.useFactory),
         inject: [...(options.inject || [])],
       },
     ];
   }
 
   private static createFactoryWrapper(
-    name: AzureServiceBusProviderAsyncOptions['name'],
-    useFactory: AzureServiceBusProviderAsyncOptions['useFactory'],
+    useFactory: BaseAzureServiceBusProviderAsyncOption['useFactory'],
   ) {
     return async (...args: any[]) => {
       const clientOptions = await useFactory(...args);
-      const clientProxyRef = new AzureServiceBusClient(
-        { ...clientOptions, name },
-        EventSubscriberService,
-      );
+      const clientProxyRef = new AzureServiceBusClient({
+        ...clientOptions,
+      });
       return this.assignOnAppShutdownHook(clientProxyRef);
+    };
+  }
+
+  public static forFeature(senders: Sender[]) {
+    const providers =
+      senders?.map((queue) => ({
+        provide: `${AZURE_SERVICE_BUS_SENDER}${toUpper(queue.name)}`,
+        useFactory: (client: AzureServiceBusClient) =>
+          client.register(queue.name),
+        inject: [AzureServiceBusClient],
+      })) || [];
+
+    return {
+      module: AzureServiceBusModule,
+      providers: [...providers],
+      exports: [...providers],
     };
   }
 

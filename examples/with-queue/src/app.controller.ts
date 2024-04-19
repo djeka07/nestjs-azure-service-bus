@@ -1,18 +1,21 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AzureServiceBusClient } from '@djeka07/nestjs-azure-service-bus';
+import {
+  AzureServiceBusClient,
+  Emit,
+  Emittable,
+} from '@djeka07/nestjs-azure-service-bus';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private readonly azureServiceBusClient: AzureServiceBusClient,
+    @Emittable('test2') private readonly emit: Emit,
   ) {}
 
   @Get()
   getHello(): string {
-    this.azureServiceBusClient.emit({
-      name: 'test2',
+    this.emit({
       payload: { body: { test: 'test' } },
     });
     return this.appService.getHello();

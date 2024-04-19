@@ -14,12 +14,11 @@ import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
           connectionString: configService.get(
             'AZURE_SERVICE_BUS_CONNECTION_STRING',
           ),
-          senders: [{ name: 'test2' }],
-          receivers: [{ name: 'test2' }],
         };
       },
       inject: [ConfigService],
     }),
+    AzureServiceBusModule.forFeature([{ name: 'test2' }]),
   ],
   controllers: [AppController],
   providers: [AppService],

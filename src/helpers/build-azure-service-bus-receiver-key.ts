@@ -1,5 +1,5 @@
 import { Receiver } from '../interfaces';
-import { isEmpty } from './object';
+import { isEmpty } from '../helpers';
 
 export default (receiver: Receiver) => {
   if (isEmpty(receiver)) {

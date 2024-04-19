@@ -6,10 +6,11 @@ type AzureServiceBusPayload<T> = Omit<ServiceBusMessage, 'body'> & {
 
 export interface AzureServiceBusEmit<T> {
   payload: AzureServiceBusPayload<T> | AzureServiceBusPayload<T>[];
-  name: string;
   options?: OperationOptionsBase;
   updateTime?: Date;
 }
+
+export type Emit = (data: AzureServiceBusEmit<unknown>) => Promise<void>;
 
 export interface AzureServiceBusMessage<T> {
   replyTo?: string;

@@ -26,8 +26,3 @@ export interface BaseAzureServiceBusProviderAsyncOption
   inject?: any[];
   extraProviders?: Provider[];
 }
-
-export interface AzureServiceBusProviderAsyncOptions
-  extends BaseAzureServiceBusProviderAsyncOption {
-  name: string;
-}

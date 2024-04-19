@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -14,18 +14,13 @@ import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
           connectionString: configService.get(
             'AZURE_SERVICE_BUS_CONNECTION_STRING',
           ),
-          senders: [{ name: 'test' }],
-          receivers: [
-            {
-              name: 'test',
-              subscription: 'test',
-            },
-          ],
         };
       },
       inject: [ConfigService],
     }),
+    AzureServiceBusModule.forFeature([{ name: 'test' }, { name: 'test3' }]),
   ],
+
   controllers: [AppController],
   providers: [AppService],
 })

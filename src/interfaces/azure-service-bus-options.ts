@@ -12,7 +12,6 @@ export interface Sender {
 export interface AzureServiceBusOptions {
   connectionString: string;
   senders?: Sender[];
-  receivers?: Omit<Receiver, 'provider'>[];
 }
 
 export interface AzureServiceBusOptionsWithName extends AzureServiceBusOptions {

@@ -9,67 +9,63 @@ import {
   parseServiceBusConnectionString,
 } from '@azure/service-bus';
 import { Inject } from '@nestjs/common';
-import {
-  AZURE_SERVICE_BUS_CONFIGURATION,
-  AZURE_SERVICE_BUS_EVENT_SUBSCRIBER_CLIENT,
-  EventSubscriberService,
-} from '../constants';
+import { AZURE_SERVICE_BUS_CONFIGURATION } from '../constants';
 import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-receiver-key';
 import {
   AzureServiceBusEmit,
   AzureServiceBusMessage,
   AzureServiceBusOptionsWithName,
+  Receiver,
 } from '../interfaces';
+import { Emit } from '../interfaces';
 
 export class AzureServiceBusClient {
   private serviceBusClient: ServiceBusClient;
-  private sender?: Record<string, ServiceBusSender>;
-  private receiver?: Record<string, ServiceBusReceiver>;
+  public sender?: Record<string, ServiceBusSender>;
+  public receiver?: Record<string, ServiceBusReceiver>;
   public clientConfig: ServiceBusConnectionStringProperties;
 
   constructor(
     @Inject(AZURE_SERVICE_BUS_CONFIGURATION)
     private readonly config: AzureServiceBusOptionsWithName,
-    @Inject(AZURE_SERVICE_BUS_EVENT_SUBSCRIBER_CLIENT)
-    private readonly eventSubscriberService: typeof EventSubscriberService,
   ) {
     this.serviceBusClient = new ServiceBusClient(config.connectionString);
     this.clientConfig = parseServiceBusConnectionString(
       config.connectionString,
     );
-    this.sender =
-      !!config.senders && config.senders.length > 0
-        ? config.senders?.reduce((acc, curr) => {
-            return {
-              ...acc,
-              [curr.name]: this.serviceBusClient.createSender(curr.name, {
-                identifier: curr.identifier,
-              }),
-            };
-          }, {})
-        : undefined;
-    this.receiver =
-      !!config.receivers && config.receivers?.length > 0
-        ? config.receivers.reduce?.((acc, curr) => {
-            return {
-              ...acc,
-              [buildAzureServiceBusKey({ ...curr, provider: config.name })]:
-                this.serviceBusClient.createReceiver(
-                  curr.name,
-                  curr.subscription,
-                ),
-            };
-          }, {})
-        : undefined;
-    if (!!this.receiver) {
-      for (const key in this.receiver) {
-        this.receiver[key].subscribe(this.createMessageHandlers(key));
-      }
+    this.receiver = {};
+    this.sender = {};
+  }
+
+  register(name: string): Promise<Emit> {
+    if (!this.sender[name]) {
+      this.sender[name] = this.serviceBusClient.createSender(name);
+    }
+    return this.emit(name);
+  }
+
+  subscribe(receiver: Receiver, handler: (payload?: unknown) => void) {
+    const key = buildAzureServiceBusKey(receiver);
+    if (!this.receiver?.[key]) {
+      this.receiver[key] = this.serviceBusClient.createReceiver(
+        receiver.name,
+        receiver.subscription,
+      );
+      this.receiver[key].subscribe(this.createMessageHandlers(handler));
     }
   }
 
-  async emit<T>(data: AzureServiceBusEmit<T>): Promise<void> {
-    const { payload, updateTime, options, name } = data;
+  async emit<T>(queue: string): Promise<Emit> {
+    return (data: AzureServiceBusEmit<T>) => {
+      return this.privateEmit(queue, data);
+    };
+  }
+
+  private async privateEmit<T>(
+    name: string,
+    data: AzureServiceBusEmit<T>,
+  ): Promise<void> {
+    const { payload, updateTime, options } = data;
     const sender = this.sender?.[name];
     if (!!sender) {
       if (updateTime && this.checkScheduleDate(updateTime)) {
@@ -108,10 +104,12 @@ export class AzureServiceBusClient {
     await this.serviceBusClient?.close();
   }
 
-  private createMessageHandlers(key: string): MessageHandlers {
+  private createMessageHandlers(
+    handler: (payload?: unknown) => void,
+  ): MessageHandlers {
     return {
       processMessage: async (receivedMessage: ServiceBusReceivedMessage) => {
-        this.handleMessage(receivedMessage, key);
+        this.handleMessage(receivedMessage, handler);
       },
       processError: (args: ProcessErrorArgs): Promise<void> => {
         return new Promise<void>(() => {
@@ -121,7 +119,10 @@ export class AzureServiceBusClient {
     };
   }
 
-  handleMessage(receivedMessage: ServiceBusReceivedMessage, key: string): void {
+  handleMessage(
+    receivedMessage: ServiceBusReceivedMessage,
+    handler: (payload?: unknown) => void,
+  ): void {
     try {
       const {
         body,
@@ -135,7 +136,7 @@ export class AzureServiceBusClient {
         lockToken,
         timeToLive,
       } = receivedMessage;
-      this.eventSubscriberService.invoke(key, {
+      handler({
         body,
         replyTo,
         deliveryCount,
