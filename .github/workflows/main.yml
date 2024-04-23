@@ -13,7 +13,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: yarn install --ignore-scripts
       - run: npx jest --coverage --coverageReporters json-summary
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: coverage/*
