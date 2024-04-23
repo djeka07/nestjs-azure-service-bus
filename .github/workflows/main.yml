@@ -48,7 +48,7 @@ jobs:
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 9c39e47756ba44394125c47bde26346c
-          filename: jest-coverage-comment__main.json
+          filename: coverage.json
           label: Coverage
           message: ${{ steps.coverageComment.outputs.coverage }}%
           color: ${{ steps.coverageComment.outputs.color }}
