@@ -10,7 +10,7 @@
 
 <div align="center">
 <a href="https://www.npmjs.com/package/@djeka07/nestjs-azure-service-bus"><img src="https://img.shields.io/npm/v/@djeka07/nestjs-azure-service-bus.svg" alt="NPM Version" /></a>
-<a href="https://github.com/djeka07/nestjs-azure-service-bus/blob/main/README.md"><img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/djeka07/9c39e47756ba44394125c47bde26346c/raw/jest-coverage-comment__main.json"></a>
+<a href="https://github.com/djeka07/nestjs-azure-service-bus/blob/main/README.md"><img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/djeka07/9c39e47756ba44394125c47bde26346c/raw/coverage.json"></a>
 
 <img href="https://www.npmjs.com/package/@djeka07/nestjs-azure-service-bus"><img src="https://img.shields.io/npm/l/@djeka07/nestjs-azure-service-bus.svg" alt="Package License" /></a>
 
