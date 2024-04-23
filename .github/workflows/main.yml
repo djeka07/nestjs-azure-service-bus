@@ -11,7 +11,7 @@ jobs:
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm install
+      - run: yarn install
       - run: npx jest --coverage --coverageReporters json-summary
       - uses: actions/upload-artifact@v2
         with:
