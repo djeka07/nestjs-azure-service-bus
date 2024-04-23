@@ -10,7 +10,8 @@ import { AzureServiceBusClient } from '../clients/azure-service-bus.client';
 import { AZURE_SERVICE_BUS_SENDER } from '../constants';
 import { toUpper } from '../helpers';
 import {
-  BaseAzureServiceBusProviderAsyncOption,
+  AzureServiceBusOptions,
+  AzureServiceBusProviderAsyncOption,
   ExploredClass,
   ExploredMethodWithMeta,
   Receiver,
@@ -44,13 +45,11 @@ export class AzureServiceBusModule implements OnModuleInit {
           method.discoveredMethod.parentClass.instance,
         );
         const azureServiceBus = azureServiceBusClients?.find(
-          (client) =>
-            client.name === method.meta.receiver.provider ||
-            client.name === AzureServiceBusClient.name,
+          (client) => client.name === AzureServiceBusClient.name,
         );
         if (!azureServiceBus) {
           throw new Error(
-            `Could not find any registered servicebus client with name ${method?.meta?.receiver?.provider || AzureServiceBusClient.name}`,
+            `Could not find any registered servicebus client with name ${AzureServiceBusClient.name}`,
           );
         }
         azureServiceBus.instance.subscribe(method.meta.receiver, handler);
@@ -58,7 +57,21 @@ export class AzureServiceBusModule implements OnModuleInit {
     }
   }
 
-  public static forAsyncRoot(option: BaseAzureServiceBusProviderAsyncOption) {
+  public static forRoot(option: AzureServiceBusOptions) {
+    const providers = [
+      {
+        provide: AzureServiceBusClient,
+        useValue: new AzureServiceBusClient(option),
+      },
+    ];
+    return {
+      module: AzureServiceBusModule,
+      providers,
+      exports: providers,
+    };
+  }
+
+  public static forRootAsync(option: AzureServiceBusProviderAsyncOption) {
     const providers: Provider[] = this.createAsyncOptionsProvider(
       option,
     ).concat(option.extraProviders || []);
@@ -72,7 +85,7 @@ export class AzureServiceBusModule implements OnModuleInit {
   }
 
   private static createAsyncOptionsProvider(
-    options: BaseAzureServiceBusProviderAsyncOption,
+    options: AzureServiceBusProviderAsyncOption,
   ): Provider[] {
     return [
       {
@@ -84,7 +97,7 @@ export class AzureServiceBusModule implements OnModuleInit {
   }
 
   private static createFactoryWrapper(
-    useFactory: BaseAzureServiceBusProviderAsyncOption['useFactory'],
+    useFactory: AzureServiceBusProviderAsyncOption['useFactory'],
   ) {
     return async (...args: any[]) => {
       const clientOptions = await useFactory(...args);

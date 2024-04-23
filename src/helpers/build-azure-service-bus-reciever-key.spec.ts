@@ -17,14 +17,4 @@ describe('GIVEN buildAzureServiceBusReveiverKey', () => {
       }),
     ).toBe('name/subscription');
   });
-
-  test('WHEN receiver has name, subscription and provider THEN should return string with that provider/name/subscription', () => {
-    expect(
-      buildAzureServiceBusReceiverKey({
-        provider: 'provider',
-        name: 'name',
-        subscription: 'subscription',
-      }),
-    ).toBe('provider/name/subscription');
-  });
 });

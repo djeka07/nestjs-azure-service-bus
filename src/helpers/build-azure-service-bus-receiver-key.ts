@@ -6,9 +6,9 @@ export default (receiver: Receiver) => {
     return '';
   }
 
-  if (!receiver?.subscription && !receiver?.provider) {
+  if (!receiver?.subscription) {
     return receiver.name;
   }
 
-  return `${receiver?.provider ? `${receiver.provider}/` : ''}${receiver.name}${!!receiver.subscription ? `/${receiver.subscription}` : ''}`;
+  return `${receiver.name}${!!receiver.subscription ? `/${receiver.subscription}` : ''}`;
 };

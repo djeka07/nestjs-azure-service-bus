@@ -6,7 +6,6 @@ import {
   ServiceBusReceivedMessage,
   ServiceBusReceiver,
   ServiceBusSender,
-  parseServiceBusConnectionString,
 } from '@azure/service-bus';
 import { Inject } from '@nestjs/common';
 import { AZURE_SERVICE_BUS_CONFIGURATION } from '../constants';
@@ -14,25 +13,21 @@ import buildAzureServiceBusKey from '../helpers/build-azure-service-bus-receiver
 import {
   AzureServiceBusEmit,
   AzureServiceBusMessage,
-  AzureServiceBusOptionsWithName,
+  AzureServiceBusOptions,
+  Emit,
   Receiver,
 } from '../interfaces';
-import { Emit } from '../interfaces';
 
 export class AzureServiceBusClient {
   private serviceBusClient: ServiceBusClient;
-  public sender?: Record<string, ServiceBusSender>;
-  public receiver?: Record<string, ServiceBusReceiver>;
-  public clientConfig: ServiceBusConnectionStringProperties;
+  private sender?: Record<string, ServiceBusSender>;
+  private receiver?: Record<string, ServiceBusReceiver>;
 
   constructor(
     @Inject(AZURE_SERVICE_BUS_CONFIGURATION)
-    private readonly config: AzureServiceBusOptionsWithName,
+    private readonly config: AzureServiceBusOptions,
   ) {
     this.serviceBusClient = new ServiceBusClient(config.connectionString);
-    this.clientConfig = parseServiceBusConnectionString(
-      config.connectionString,
-    );
     this.receiver = {};
     this.sender = {};
   }
@@ -76,7 +71,7 @@ export class AzureServiceBusClient {
     }
   }
 
-  checkScheduleDate(updateTime: Date) {
+  private checkScheduleDate(updateTime: Date) {
     if (updateTime instanceof Date) {
       return true;
     } else {
@@ -95,9 +90,7 @@ export class AzureServiceBusClient {
 
     if (!!this.receiver) {
       for (const key in this.receiver) {
-        for (const subKey in this.receiver[key]) {
-          await this.receiver[key][subKey]?.close();
-        }
+        await this.receiver[key]?.close();
       }
     }
 
@@ -119,7 +112,7 @@ export class AzureServiceBusClient {
     };
   }
 
-  handleMessage(
+  private handleMessage(
     receivedMessage: ServiceBusReceivedMessage,
     handler: (payload?: unknown) => void,
   ): void {

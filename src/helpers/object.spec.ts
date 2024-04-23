@@ -1,20 +1,20 @@
 import { isEmpty } from './object';
 
 describe('GIVEN isEmpty', () => {
-  it('Should return false if object is not empty', () => {
+  test('WHEN object is not empty THEN return false', () => {
     const obj = { test: 'test' };
     expect(isEmpty(obj)).toBeFalsy();
   });
-  it('Should return true if object is empty', () => {
+  test('WHEN object is empty THEN return true', () => {
     const obj = {};
     expect(isEmpty(obj)).toBeTruthy();
   });
 
-  it('Should return true if object is undefined', () => {
+  test('WHEN is undefined THEN return true', () => {
     expect(isEmpty(undefined)).toBeTruthy();
   });
 
-  it('Should return true if object is null', () => {
+  test('WHEN is null THEN return true', () => {
     expect(isEmpty(null)).toBeTruthy();
   });
 });

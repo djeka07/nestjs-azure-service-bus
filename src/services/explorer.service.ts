@@ -155,7 +155,6 @@ export class ExplorerService {
   private async explore(component: 'providers' | 'controllers') {
     const modulesMap = [...this.modulesContainer.entries()];
     return Promise.all(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       flatMap(modulesMap, ([key, nestModule]) => {
         const components = [...nestModule[component].values()];
         return components
