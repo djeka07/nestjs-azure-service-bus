@@ -10,5 +10,5 @@ export default (receiver: Receiver) => {
     return receiver.name;
   }
 
-  return `${receiver.name}${!!receiver.subscription ? `/${receiver.subscription}` : ''}`;
+  return `${receiver.name}/${receiver.subscription}`;
 };

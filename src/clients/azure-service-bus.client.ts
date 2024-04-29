@@ -17,6 +17,7 @@ import {
   Emit,
   Receiver,
 } from '../interfaces';
+import createMessageHandlers from '../helpers/create-message-handlers';
 
 export class AzureServiceBusClient {
   private serviceBusClient: ServiceBusClient;
@@ -46,7 +47,7 @@ export class AzureServiceBusClient {
         receiver.name,
         receiver.subscription,
       );
-      this.receiver[key].subscribe(this.createMessageHandlers(handler));
+      this.receiver[key].subscribe(createMessageHandlers(handler));
     }
   }
 
@@ -95,54 +96,5 @@ export class AzureServiceBusClient {
     }
 
     await this.serviceBusClient?.close();
-  }
-
-  private createMessageHandlers(
-    handler: (payload?: unknown) => void,
-  ): MessageHandlers {
-    return {
-      processMessage: async (receivedMessage: ServiceBusReceivedMessage) => {
-        this.handleMessage(receivedMessage, handler);
-      },
-      processError: (args: ProcessErrorArgs): Promise<void> => {
-        return new Promise<void>(() => {
-          throw new Error(`Error processing message: ${args.error}`);
-        });
-      },
-    };
-  }
-
-  private handleMessage(
-    receivedMessage: ServiceBusReceivedMessage,
-    handler: (payload?: unknown) => void,
-  ): void {
-    try {
-      const {
-        body,
-        deliveryCount,
-        replyTo,
-        messageId,
-        state,
-        enqueuedTimeUtc,
-        lockedUntilUtc,
-        expiresAtUtc,
-        lockToken,
-        timeToLive,
-      } = receivedMessage;
-      handler({
-        body,
-        replyTo,
-        deliveryCount,
-        messageId,
-        state,
-        enqueuedTimeUtc,
-        lockedUntilUtc,
-        expiresAtUtc,
-        lockToken,
-        timeToLive,
-      } as AzureServiceBusMessage<unknown>);
-    } catch (err) {
-      throw err;
-    }
   }
 }

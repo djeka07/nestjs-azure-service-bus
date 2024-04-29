@@ -156,7 +156,7 @@ describe('GIVEN AzureServiceBusModule', () => {
       ],
     }).compile();
 
-    const client = moduleRef.get<AzureServiceBusClient>(AzureServiceBusClient);
+    const client = moduleRef.get(AzureServiceBusClient);
     expect(client).toBeInstanceOf(AzureServiceBusClient);
     expect(optionsFactory).toHaveBeenCalled();
     expect(ServiceBusClient).toHaveBeenCalledWith(options.connectionString);

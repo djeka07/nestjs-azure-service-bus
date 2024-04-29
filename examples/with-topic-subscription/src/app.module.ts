@@ -1,13 +1,14 @@
 import { AzureServiceBusModule } from '@djeka07/nestjs-azure-service-bus';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MetadataScanner } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    AzureServiceBusModule.forAsyncRoot({
+    AzureServiceBusModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
         return {
@@ -22,6 +23,6 @@ import { AppService } from './app.service';
   ],
 
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MetadataScanner],
 })
 export class AppModule {}

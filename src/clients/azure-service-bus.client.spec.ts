@@ -71,6 +71,7 @@ describe('GIVEN AzureServiceBusClient', () => {
   test('WHEN emit a message THEN should call sendMessages on Servicebus sender instance', async () => {
     const sendMessagesMock = jest.fn();
     const sendScheduledMessages = jest.fn();
+    const subscribeMock = jest.fn();
     const mockedSender = jest
       .spyOn(ServiceBusClient.prototype, 'createSender')
       .mockImplementation(() => ({
@@ -83,13 +84,18 @@ describe('GIVEN AzureServiceBusClient', () => {
         close: jest.fn(),
         scheduleMessages: sendScheduledMessages,
       }));
+    const mockedReceiver = jest
+      .spyOn(ServiceBusClient.prototype, 'createReceiver')
+      .mockReturnValue(getMockedReceiver(subscribeMock));
     jest.spyOn(ServiceBusClient.prototype, 'close');
 
     azureServiceBus.register('test');
+    azureServiceBus.subscribe({ name: 'test' }, subscribeMock);
     const emittable = await azureServiceBus.emit('test');
     emittable({ payload: { body: { test: 'test' } } });
     expect(sendMessagesMock).toHaveBeenCalledTimes(1);
     expect(sendScheduledMessages).toHaveBeenCalledTimes(0);
+    expect(mockedReceiver).toHaveBeenCalled();
   });
 
   test('WHEN emit a message with update time THEN should call sendScheduleMessages on Servicebus sender instance', async () => {
@@ -108,7 +114,6 @@ describe('GIVEN AzureServiceBusClient', () => {
         scheduleMessages: sendScheduledMessages,
       }));
     jest.spyOn(ServiceBusClient.prototype, 'close');
-
     azureServiceBus.register('test');
     const emittable = await azureServiceBus.emit('test');
     emittable({ payload: { body: { test: 'test' } }, updateTime: new Date() });

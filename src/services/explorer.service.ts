@@ -19,14 +19,13 @@ import { AZURE_SERVICE_BUS_SUBSCRIBER } from '../constants/azure-service-bus.con
 
 @Injectable()
 export class ExplorerService {
-  private exploredProviders?: Promise<ExploredClass[]>;
-  private exploredControllers?: Promise<ExploredClass[]>;
+  private exploredClasses?: Promise<ExploredClass[]>;
   constructor(
     private readonly modulesContainer: ModulesContainer,
     private readonly metadataScanner: MetadataScanner,
   ) {}
 
-  classMethodsWithMetaAtKey<T>(
+  private classMethodsWithMetaAtKey<T>(
     component: ExploredClass,
     metaKey: MetaKey,
   ): ExploredMethodWithMeta<T>[] {
@@ -49,58 +48,37 @@ export class ExplorerService {
   async getMethodsWithSubscriberKey(): Promise<
     ExploredMethodWithMeta<{ receiver: Receiver }>[]
   > {
-    const methods = await Promise.all([
-      this.getControllerMethods<{ receiver: Receiver }>(
-        AZURE_SERVICE_BUS_SUBSCRIBER,
-      ),
-      this.getProviderMethods<{ receiver: Receiver }>(
-        AZURE_SERVICE_BUS_SUBSCRIBER,
-      ),
-    ]);
+    const methods = this.getProviderMethods<{ receiver: Receiver }>(
+      AZURE_SERVICE_BUS_SUBSCRIBER,
+    );
 
     return flatMap(methods);
-  }
-
-  private async getControllerMethods<T>(
-    metaKey: MetaKey,
-  ): Promise<ExploredMethodWithMeta<T>[]> {
-    const controllers = await this.getControllers();
-
-    return flatMap(controllers, (controller) =>
-      this.classMethodsWithMetaAtKey<T>(controller, metaKey),
-    );
   }
 
   async getAzureServiceBusClientProviders(): Promise<
     ExploredClass<AzureServiceBusClient>[]
   > {
-    return this.getProviders(
+    return this.getExploredClasses(
+      true,
       (x) => x.instance instanceof AzureServiceBusClient,
     ) as Promise<ExploredClass<AzureServiceBusClient>[]>;
   }
 
-  async getProviders(
+  private async getExploredClasses(
+    excludeControllers: boolean = false,
     filter: Filter<ExploredClass> = () => true,
   ): Promise<ExploredClass[]> {
-    if (!this.exploredProviders) {
-      this.exploredProviders = this.explore('providers');
+    if (!this.exploredClasses) {
+      this.exploredClasses = this.explore(excludeControllers);
     }
-    return (await this.exploredProviders).filter((x) => filter(x));
-  }
-
-  private async getControllers(
-    filter: Filter<ExploredClass> = () => true,
-  ): Promise<ExploredClass[]> {
-    if (!this.exploredControllers) {
-      this.exploredControllers = this.explore('controllers');
-    }
-    return (await this.exploredControllers).filter((x) => filter(x));
+    return (await this.exploredClasses).filter((x) => filter(x));
   }
 
   private async getProviderMethods<T>(
     metaKey: MetaKey,
+    excludeControllers = false,
   ): Promise<ExploredMethodWithMeta<T>[]> {
-    const providers = await this.getProviders();
+    const providers = await this.getExploredClasses(excludeControllers);
     return flatMap(providers, (provider) =>
       this.classMethodsWithMetaAtKey<T>(provider, metaKey),
     );
@@ -152,12 +130,17 @@ export class ExplorerService {
     };
   }
 
-  private async explore(component: 'providers' | 'controllers') {
+  private async explore(excludeControllers: boolean = false) {
     const modulesMap = [...this.modulesContainer.entries()];
     return Promise.all(
       flatMap(modulesMap, ([key, nestModule]) => {
-        const components = [...nestModule[component].values()];
-        return components
+        const controllerComponents = excludeControllers
+          ? []
+          : [...(nestModule?.['controllers']?.values() || [])];
+        const providerComponents = [
+          ...(nestModule?.['providers']?.values() || []),
+        ];
+        return [...controllerComponents, ...providerComponents]
           .filter((component) => component.scope !== Scope.REQUEST)
           .map((component) => this.toExploredClass(nestModule, component));
       }),
