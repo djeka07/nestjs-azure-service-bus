@@ -1,13 +1,10 @@
-import { Test } from '@nestjs/testing';
-import { ExplorerService } from './explorer.service';
-import { MetadataScanner } from '@nestjs/core/metadata-scanner';
-import { ModulesContainer } from '@nestjs/core/injector/modules-container';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { AppController } from 'examples/with-queue/dist/app.controller';
-import { Module } from '@nestjs/core/injector/module';
-import { AppModule } from 'examples/with-queue/dist/app.module';
 import { Injectable } from '@nestjs/common';
+import { Module } from '@nestjs/core/injector/module';
+import { ModulesContainer } from '@nestjs/core/injector/modules-container';
+import { MetadataScanner } from '@nestjs/core/metadata-scanner';
+import { Test } from '@nestjs/testing';
 import { Subscribe } from '../decorators';
+import { ExplorerService } from './explorer.service';
 
 @Injectable()
 class TestService {
