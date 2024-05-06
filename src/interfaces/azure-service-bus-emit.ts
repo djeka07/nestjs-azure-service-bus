@@ -5,7 +5,7 @@ type AzureServiceBusPayload<T> = Omit<ServiceBusMessage, 'body'> & {
 };
 
 export interface AzureServiceBusEmit<T> {
-  payload: AzureServiceBusPayload<T> | AzureServiceBusPayload<T>[];
+  payload: AzureServiceBusPayload<T>;
   options?: OperationOptionsBase;
   updateTime?: Date;
 }

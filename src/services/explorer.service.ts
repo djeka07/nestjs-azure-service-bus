@@ -52,7 +52,7 @@ export class ExplorerService {
       AZURE_SERVICE_BUS_SUBSCRIBER,
     );
 
-    return flatMap(methods);
+    return methods;
   }
 
   async getAzureServiceBusClientProviders(): Promise<

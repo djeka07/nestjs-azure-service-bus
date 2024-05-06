@@ -205,10 +205,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@djeka07/nestjs-azure-service-bus@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@djeka07/nestjs-azure-service-bus/-/nestjs-azure-service-bus-0.2.1.tgz#e0e124b5c022f16e39d15ccc795d8e9bae3b1ee8"
-  integrity sha512-tl7b6Lbue4HQgtUxPmpSU5dbgZq5OhdwH01y37tqAhDBcFCGGPYL+0Sqzr5f4lw+NqhkVRip20X4jdhO1bY4jg==
+"@djeka07/nestjs-azure-service-bus@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@djeka07/nestjs-azure-service-bus/-/nestjs-azure-service-bus-0.2.3.tgz#1731d6405884e31e3ba0801b46b42200098e42b5"
+  integrity sha512-DK5mPT1yjMElzXuiRUuwS7KMv2Obg4tCNE6Eko1jt0N25zmiNoVLyMUyEbBmSkEwABaEOZqHZBRfioFQyEK6ig==
   dependencies:
     "@azure/service-bus" "7.9.4"
     "@nestjs/common" "10.3.8"
